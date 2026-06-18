@@ -1,0 +1,29 @@
+# Environments
+.env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+dist/
+build/
+.next/
+
+# SQLite
+*.db
+*.sqlite3
+talentlens.db
+
+# OS generated
+.DS_Store
+Thumbs.db

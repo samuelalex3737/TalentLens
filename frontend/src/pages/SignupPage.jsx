@@ -100,25 +100,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-lg border border-gray-200 dark:border-indigo-500/30 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            <GoogleIcon />
-            {googleLoading ? 'Redirecting...' : 'Continue with Google'}
-          </button>
-
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-gray-200 dark:bg-white/[0.08]" />
-            <span className="text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">
-              or sign up with email
-            </span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-white/[0.08]" />
-          </div>
-
-          <form className="space-y-6" onSubmit={handleSignup}>
+          <form className="space-y-6 mt-4" onSubmit={handleSignup}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>

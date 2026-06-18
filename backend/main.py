@@ -177,10 +177,10 @@ async def startup():
 from fastapi.security import OAuth2PasswordBearer
 from supabase import create_client, Client
 
-SUPABASE_URL = "https://amwllhxmsktgzhtqsplb.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtd2xsaHhtc2t0Z3podHFzcGxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTAzOTEsImV4cCI6MjA5NzEyNjM5MX0.XUlwt6Eu8nVqQMyWRnRW5NPKiwcfhV2gJVJPzft-PRI"
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
@@ -190,6 +190,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        if not supabase:
+            logger.error("Supabase credentials not configured on backend.")
+            raise HTTPException(status_code=500, detail="Auth configuration error")
         response = supabase.auth.get_user(token)
         if not response.user:
             raise credentials_exception

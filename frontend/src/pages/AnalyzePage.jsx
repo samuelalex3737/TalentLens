@@ -13,6 +13,7 @@ import JDQualityPanel from '../components/UI/JDQualityPanel';
 import CompareModal from '../components/Results/CompareModal';
 import ShortlistEmailModal from '../components/Results/ShortlistEmailModal';
 import { analyzeJD } from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function AnalyzePage() {
   const [jobTitle, setJobTitle] = useState(() => sessionStorage.getItem('tl_jd_title') || '');
@@ -78,6 +79,7 @@ export default function AnalyzePage() {
         setJdQuality(result);
       } catch (err) {
         console.error(err);
+        toast.error(err.response?.data?.detail || 'Failed to analyze JD quality');
       } finally {
         setJdAnalyzing(false);
       }

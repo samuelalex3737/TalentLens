@@ -874,9 +874,10 @@ async def analyze_jd_quality(payload: JDAnalyzeRequest) -> JDQualityResponse:
             strengths=strengths
         )
     except Exception as e:
-        logger.warning(f"JD analysis failed: {e}")
-        # Return fallback on error
-        return JDQualityResponse(quality_score=0, grade="C", issues=[], strengths=[])
+        logger.error(f"JD analysis failed: {e}")
+        if "429" in str(e):
+            raise HTTPException(429, "AI provider rate limit exceeded. Please wait a moment before trying again.")
+        raise HTTPException(500, f"Failed to analyze job description: {str(e)}")
 
 # ---------------------------------------------------------------------------
 # CSV Export

@@ -410,6 +410,13 @@ async def analyze_resumes(
                         "hiring_recommendation": "Poor Match", "ai_provider": "none", "ai_model": "none",
                     }
                     logger.error("AI scoring timed out for '%s'", parsed.get("candidate_name", "Unknown"))
+                except Exception as e:
+                    ai_result = {
+                        "semantic_score": 0.0, "matched_skills": [], "missing_skills": jd_skills,
+                        "transferable_skills": [], "candidate_summary": f"AI analysis failed: {str(e)}",
+                        "hiring_recommendation": "Poor Match", "ai_provider": "none", "ai_model": "none",
+                    }
+                    logger.error("AI analysis error for '%s': %s", parsed.get("candidate_name", "Unknown"), e)
                     
             resume_skills = list(dict.fromkeys(
                 (parsed.get("skills", {}) or {}).get("all_skills", []) +

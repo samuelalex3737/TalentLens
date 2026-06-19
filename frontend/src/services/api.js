@@ -6,7 +6,7 @@ const API_BASE = 'https://talentlens-jhic.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE,
-  timeout: 120000, // 2 min timeout
+  timeout: 300000, // 5 min timeout
 });
 
 api.interceptors.request.use(async (config) => {

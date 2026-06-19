@@ -25,9 +25,11 @@ DATABASE_URL = os.getenv(
 # ---------------------------------------------------------------------------
 # Engine & Session
 # ---------------------------------------------------------------------------
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Required for SQLite + threads
+    connect_args=connect_args,
     echo=False,
 )
 

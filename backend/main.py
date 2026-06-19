@@ -81,36 +81,82 @@ def _skill_key(skill: str) -> str:
     return SKILL_KEY_ALIASES.get(key, key)
 
 def _merge_skill_lists(ai_result: dict, jd_skills: list[str], resume_skills: list[str]) -> dict:
-    matched = list(ai_result.get("matched_skills") or [])
-    missing = list(ai_result.get("missing_skills") or [])
+    ai_matched = list(ai_result.get("matched_skills") or [])
+    ai_missing = list(ai_result.get("missing_skills") or [])
 
-    matched_keys = {k for k in (_skill_key(s) for s in matched) if k}
+    def split_skills(lst):
+        res = []
+        for s in lst:
+            for p in re.split(r'\s*(?:/|,| and |&)\s*', s):
+                if p.strip(): res.append(p.strip())
+        return res
+
+    ai_matched = split_skills(ai_matched)
+    ai_missing = split_skills(ai_missing)
+
     jd_map = {}
     for s in jd_skills:
-        key = _skill_key(s)
-        if key and key not in jd_map:
-            jd_map[key] = s
+        k = _skill_key(s)
+        if k and k not in jd_map: jd_map[k] = s
+        
     resume_keys = {k for k in (_skill_key(s) for s in resume_skills) if k}
 
-    deterministic_matched = set(jd_map.keys()) & resume_keys
-    deterministic_missing = set(jd_map.keys()) - resume_keys
+    deterministic_matched_keys = set(jd_map.keys()) & resume_keys
 
-    if missing:
-        missing = [s for s in missing if _skill_key(s) not in deterministic_matched]
-    missing_keys = {k for k in (_skill_key(s) for s in missing) if k}
+    ai_matched_map = {}
+    for s in ai_matched:
+        k = _skill_key(s)
+        if k and k not in ai_matched_map: ai_matched_map[k] = s
 
-    for key in deterministic_matched:
-        if key not in matched_keys:
-            matched.append(jd_map[key])
-            matched_keys.add(key)
+    ai_missing_map = {}
+    for s in ai_missing:
+        k = _skill_key(s)
+        if k and k not in ai_missing_map: ai_missing_map[k] = s
 
-    for key in deterministic_missing:
-        if key not in missing_keys:
-            missing.append(jd_map[key])
-            missing_keys.add(key)
+    final_matched_keys = set()
+    final_missing_keys = set()
+    
+    for k in jd_map.keys():
+        if k in deterministic_matched_keys:
+            final_matched_keys.add(k)
+        elif k in ai_matched_map:
+            final_matched_keys.add(k)
+        else:
+            final_missing_keys.add(k)
+            
+    for k in ai_matched_map.keys():
+        if k not in final_matched_keys and k not in final_missing_keys:
+            final_matched_keys.add(k)
 
-    ai_result["matched_skills"] = matched
-    ai_result["missing_skills"] = missing
+    for k in ai_missing_map.keys():
+        if k not in final_matched_keys and k not in final_missing_keys:
+            if k not in deterministic_matched_keys and k not in resume_keys:
+                final_missing_keys.add(k)
+
+    final_matched = []
+    for k in final_matched_keys:
+        if k in jd_map: final_matched.append(jd_map[k])
+        elif k in ai_matched_map: final_matched.append(ai_matched_map[k])
+        else: final_matched.append(k.title())
+        
+    final_missing = []
+    for k in final_missing_keys:
+        if k in jd_map: final_missing.append(jd_map[k])
+        elif k in ai_missing_map: final_missing.append(ai_missing_map[k])
+        else: final_missing.append(k.title())
+
+    def deduplicate_preserve_order(seq):
+        seen = set()
+        res = []
+        for x in seq:
+            k = _skill_key(x)
+            if k not in seen:
+                seen.add(k)
+                res.append(x)
+        return res
+
+    ai_result["matched_skills"] = deduplicate_preserve_order(final_matched)
+    ai_result["missing_skills"] = deduplicate_preserve_order(final_missing)
     return ai_result
 
 def normalize_work_experience(raw_list: list) -> list:
@@ -291,6 +337,18 @@ async def analyze_resumes(
                 
             # PyMuPDF is CPU-bound
             parsed = await asyncio.to_thread(parse_resume, file_bytes, resume_file.filename)
+            raw_text = parsed.get("raw_text", "")
+            
+            # Resume Content Validation
+            text_lower = raw_text.lower()
+            if len(text_lower) < 150:
+                raise ValueError("Document contains too little text to be a valid resume")
+                
+            resume_keywords = ["experience", "education", "skill", "university", "college", "school", "project", "work", "employment", "profile", "summary", "resume", "cv", "certification", "degree", "bachelor"]
+            kw_count = sum(1 for kw in resume_keywords if kw in text_lower)
+            if kw_count < 3:
+                raise ValueError("Document does not appear to be a resume (missing standard sections like Experience, Education, etc.)")
+
             parsed["filename"] = resume_file.filename
             parsed_resumes.append(parsed)
         except Exception as exc:

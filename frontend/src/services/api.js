@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { supabase } from '../supabaseClient';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+// Hardcoded to bypass Vercel ENV issues
+const API_BASE = 'https://talentlens-jhic.onrender.com';
 
 const api = axios.create({
   baseURL: API_BASE,

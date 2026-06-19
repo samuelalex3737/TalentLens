@@ -32,7 +32,6 @@ export async function analyzeResumes(jobDescription, jobTitle, resumeFiles, onPr
   resumeFiles.forEach((file) => formData.append('resumes', file));
 
   const response = await api.post('/api/analyze', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: onProgress,
   });
   return response.data;

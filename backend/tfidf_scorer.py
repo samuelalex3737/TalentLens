@@ -109,8 +109,8 @@ def compute_tfidf_score(
         # Cosine similarity between JD (row 0) and resume (row 1)
         similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
 
-        # Scale to 0–100
-        score = round(min(similarity * 100, 100.0), 2)
+        # Scale to 0–100 and cast to native Python float (fixes psycopg2 InvalidSchemaName error)
+        score = float(round(min(similarity * 100, 100.0), 2))
 
         # Extract top matching terms
         feature_names = vectorizer.get_feature_names_out()
@@ -196,8 +196,8 @@ def batch_compute_tfidf_scores(
             similarity = cosine_similarity(
                 tfidf_matrix[0:1], tfidf_matrix[idx:idx+1]
             )[0][0]
-
-            score = round(min(similarity * 100, 100.0), 2)
+            # Cast to native python float to prevent psycopg2 InvalidSchemaName errors
+            score = float(round(min(similarity * 100, 100.0), 2))
 
             # Top matching terms for this resume
             resume_vector = tfidf_matrix[idx].toarray().flatten()

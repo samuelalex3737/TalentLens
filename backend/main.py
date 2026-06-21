@@ -44,6 +44,7 @@ class JDIssue(BaseModel):
     severity: str
     phrase: str
     suggestion: str
+    max_score: int = 20
 
 class JDQualityResponse(BaseModel):
     quality_score: int = Field(ge=0, le=100)
@@ -303,6 +304,8 @@ async def analyze_resumes(
     """
     if not job_description.strip():
         raise HTTPException(400, "Job description cannot be empty")
+    if len(job_description.strip()) < 50:
+        raise HTTPException(400, "Job description must be at least 50 characters")
     if not resumes:
         raise HTTPException(400, "At least one resume PDF is required")
     if len(resumes) > 20:
@@ -857,41 +860,42 @@ async def analyze_jd_quality(payload: JDAnalyzeRequest) -> JDQualityResponse:
   Evaluate the provided job description against 
   these five fixed criteria. Score each 0-20:
 
-  1. CLARITY (0-20): Are requirements, experience, 
+  1. CLARITY (0-17): Are requirements, experience, 
      and responsibilities clearly and specifically stated?
-  2. COMPLETENESS (0-20): Does it include role summary,
+  2. COMPLETENESS (0-17): Does it include role summary,
      responsibilities, required skills, qualifications,
      and compensation?
-  3. SPECIFICITY (0-20): Are vague terms replaced with
+  3. SPECIFICITY (0-17): Are vague terms replaced with
      measurable, specific language?
-  4. CANDIDATE APPEAL (0-20): Does it clearly communicate
+  4. CANDIDATE APPEAL (0-16): Does it clearly communicate
      growth opportunities, culture, and benefits?
-  5. STRUCTURE (0-20): Is it well organized with clear
+  5. STRUCTURE (0-16): Is it well organized with clear
      sections and professional formatting?
+  6. TITLE ALIGNMENT (0-17): Does the Job Title accurately 
+     reflect the level and responsibilities described?
 
   IMPORTANT RULES:
-  - For EVERY criterion that scores below 20, you MUST 
+  - For EVERY criterion that scores below its max, you MUST 
     provide exactly one specific, actionable suggestion.
   - Quote the exact text from the JD that needs changing.
   - State exactly what to change it to.
-  - Even a score of 18 or 19 must include a suggestion.
-  - A criterion only gets NO suggestion if it scores 
-    exactly 20/20.
-  - NEVER return an empty issues array unless all 5 
-    criteria scored 20/20 (perfect 100/100).
+  - A criterion only gets NO suggestion if it scores perfectly.
+  - NEVER return an empty issues array unless all 6 
+    criteria scored perfectly (100/100).
   - Strengths should list criteria that scored 18-20.
   - Always aim to help the user reach 100/100.
 
   Return this exact JSON structure:
   {{
-    "total": <sum of all 5 criterion scores>,
+    "total": <sum of all 6 criterion scores>,
     "grade": "<A+|A|B|C|D>",
     "criteria": {{
       "clarity": <number>,
       "completeness": <number>,
       "specificity": <number>,
       "candidate_appeal": <number>,
-      "structure": <number>
+      "structure": <number>,
+      "title_alignment": <number>
     }},
     "issues": [
       {{
@@ -925,15 +929,27 @@ async def analyze_jd_quality(payload: JDAnalyzeRequest) -> JDQualityResponse:
             elif score >= 55: grade = "C"
             else: grade = "D"
 
+        criteria_maxes = {
+            "clarity": 17,
+            "completeness": 17,
+            "specificity": 17,
+            "candidate_appeal": 16,
+            "structure": 16,
+            "title_alignment": 17,
+            "title alignment": 17
+        }
         issues = []
         for item in response.get("issues", []) or []:
             if not isinstance(item, dict):
                 continue
+            crit_type = str(item.get("criterion", item.get("type", "unclear")))
+            max_s = criteria_maxes.get(crit_type.lower().replace("_", " "), 20)
             issues.append(JDIssue(
-                type=str(item.get("criterion", item.get("type", "unclear"))),
-                severity=str(item.get("score", "low")),  # We will map score to severity string in frontend or just pass it
+                type=crit_type,
+                severity=str(item.get("score", "low")),
                 phrase=str(item.get("quote", item.get("phrase", ""))),
                 suggestion=str(item.get("suggestion", "")),
+                max_score=max_s
             ))
 
         strengths = response.get("strengths", [])

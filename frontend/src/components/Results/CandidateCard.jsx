@@ -168,6 +168,34 @@ export default function CandidateCard({ candidate, index, isSelected, onToggleSe
   const tfidfContrib = tfidfScore * (1 - weight);
   const aiContrib = semanticScore * weight;
 
+  const isError = candidate.candidate_summary?.startsWith('Resume parsing failed');
+
+  if (isError) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.06, duration: 0.4 }}
+        className="glass-card relative overflow-visible p-5 border-amber-500/30 bg-amber-500/5"
+      >
+        <div className="flex items-start gap-4">
+          <div className="text-2xl w-10 text-center shrink-0">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-white font-bold text-base truncate">{candidate.filename}</h4>
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              <span className="text-sm font-medium text-amber-400">Invalid Resume Format</span>
+            </div>
+            <p className="mt-2 text-sm text-gray-400">
+              {candidate.candidate_summary}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

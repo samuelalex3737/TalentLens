@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanEye, RotateCcw, Mail } from 'lucide-react';
 import JobDescriptionInput from '../components/Upload/JobDescriptionInput';
@@ -65,13 +65,19 @@ export default function AnalyzePage() {
     }
   }, [isAnalyzing]);
 
+  const lastAnalyzedText = useRef('');
+
   useEffect(() => {
     if (jobDescription.length < 50) {
       setJdQuality(null);
       setPreviousJdScore(null);
       return;
     }
+    if (jobDescription === lastAnalyzedText.current) {
+      return;
+    }
     const timer = setTimeout(async () => {
+      lastAnalyzedText.current = jobDescription;
       setJdAnalyzing(true);
       try {
         const result = await analyzeJD({ job_title: jobTitle || 'Untitled', job_description: jobDescription });
@@ -85,7 +91,8 @@ export default function AnalyzePage() {
       }
     }, 1500);
     return () => clearTimeout(timer);
-  }, [jobDescription, jobTitle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobDescription]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -126,6 +133,8 @@ export default function AnalyzePage() {
     const finalScore = (normalizedTfidf * (1 - weight)) + (semantic * weight);
     return { ...c, final_score: finalScore };
   }).sort((a, b) => b.final_score - a.final_score) : [];
+
+  const canAnalyze = jobDescription.trim().length >= 50 && resumeFiles.length > 0;
 
   return (
     <div className="relative">
@@ -176,18 +185,18 @@ export default function AnalyzePage() {
               <motion.button
                 id="analyze-button"
                 onClick={handleAnalyze}
-                disabled={!jobDescription.trim() || resumeFiles.length === 0}
+                disabled={!canAnalyze}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className={`w-full py-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all duration-200 analyze-submit-btn
-                  ${(!jobDescription.trim() || resumeFiles.length === 0)
+                  ${!canAnalyze
                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/20'
                   }`}
               >
                 <ScanEye className="w-5 h-5" />
-                {!jobDescription.trim()
-                  ? 'Please Paste a Job Description'
+                {jobDescription.trim().length < 50
+                  ? <span className="text-amber-400">⚠️ Please paste a complete job description (at least 50 characters) before analyzing.</span>
                   : resumeFiles.length === 0
                   ? 'Please Upload a Resume'
                   : `Analyze ${resumeFiles.length} Resume${resumeFiles.length !== 1 ? 's' : ''}`

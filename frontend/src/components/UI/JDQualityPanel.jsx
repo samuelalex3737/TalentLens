@@ -59,7 +59,7 @@ export default function JDQualityPanel({ qualityData, loading, previousScore }) 
               qualityData.issues.map((issue, i) => (
                 <div key={i} className="text-xs">
                   <div className="jda-criterion-label flex items-center gap-1.5 font-bold text-amber-600 dark:text-yellow-400 mb-1">
-                    <span className="uppercase">[{issue.type} — {issue.severity}/{issue.max_score || 20}]</span>
+                    <span className="uppercase">[{issue.type} — {issue.severity}/20]</span>
                   </div>
                   <div className="pl-1 space-y-1.5">
                     <p className="jda-quote text-gray-500 dark:text-white/50 italic leading-relaxed">"{issue.phrase}"</p>

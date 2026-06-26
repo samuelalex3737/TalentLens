@@ -141,7 +141,7 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
         </div>
 
         {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="md:hidden pb-4 space-y-1">
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="md:hidden pb-4 space-y-1 px-4 border-t border-white/5" style={{ background: 'var(--nav-bg)', backdropFilter: 'blur(24px)' }}>
             <button
               onClick={() => { onToggleTheme?.(); setMobileOpen(false); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"

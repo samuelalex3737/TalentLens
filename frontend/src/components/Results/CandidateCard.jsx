@@ -234,7 +234,7 @@ export default function CandidateCard({ candidate, index, isSelected, onToggleSe
         </div>
       )}
       {/* Header Row */}
-      <div className="p-5 cursor-pointer flex items-center gap-4" onClick={() => setExpanded(!expanded)}>
+      <div className="p-5 cursor-pointer flex flex-wrap items-center gap-3 sm:gap-4" onClick={() => setExpanded(!expanded)}>
         {onToggleSelect && (
           <div className="shrink-0 pt-1" onClick={e => e.stopPropagation()}>
             <input 
@@ -261,7 +261,7 @@ export default function CandidateCard({ candidate, index, isSelected, onToggleSe
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-end sm:justify-start mt-1 sm:mt-0">
           <BiasBadge risk={candidate.bias_risk} explanation={candidate.bias_explanation} />
           <ScoreTooltipWrapper aiWeight={aiWeight}>
             <ScoreBadge score={candidate.final_score} size="lg" />

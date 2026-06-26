@@ -22,13 +22,13 @@ export default function CompareModal({ candidates, onClose }) {
 
   return (
     <div onClick={onClose} className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm overflow-y-auto" data-force-dark>
-      <div onClick={(e) => e.stopPropagation()} className="min-h-screen p-6 pt-24 flex flex-col">
+      <div onClick={(e) => e.stopPropagation()} className="min-h-screen p-3 sm:p-6 pt-20 sm:pt-24 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Candidate Comparison</h2>
           <button onClick={onClose} className="text-white hover:text-gray-300">✕</button>
         </div>
 
-        <div className={`grid gap-4 ${candidates.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        <div className={`grid gap-4 grid-cols-1 ${candidates.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
           {candidates.map((c) => (
             <div key={c.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
               

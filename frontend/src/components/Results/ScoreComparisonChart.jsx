@@ -56,12 +56,12 @@ export default function ScoreComparisonChart({ candidates, semanticWeight = 0.65
   return (
     <div className="space-y-6">
       {/* Bar Chart */}
-      <div className="glass-card p-6">
+      <div className="glass-card p-3 sm:p-6">
         <h4 className="text-base font-semibold text-white mb-4">Score Comparison</h4>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={280}>
           <BarChart data={barData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-            <XAxis dataKey="name" tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} axisLine={{ stroke: 'var(--chart-grid)' }} />
+            <XAxis dataKey="name" tick={{ fill: 'var(--chart-axis)', fontSize: 11 }} axisLine={{ stroke: 'var(--chart-grid)' }} angle={-25} textAnchor="end" height={50} />
             <YAxis tick={{ fill: 'var(--chart-axis)', fontSize: 12 }} axisLine={{ stroke: 'var(--chart-grid)' }} domain={[0, 100]} />
             <Tooltip content={<CustomTooltip />} />
             <Legend wrapperStyle={{ color: 'var(--chart-axis)', fontSize: 12 }} />
@@ -74,16 +74,16 @@ export default function ScoreComparisonChart({ candidates, semanticWeight = 0.65
 
       {/* Radar Chart */}
       {top3.length >= 2 && (
-        <div className="glass-card p-6 overflow-hidden group">
+        <div className="glass-card p-3 sm:p-6 overflow-hidden group">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-base font-semibold text-white">Top Candidates - Skill Radar</h4>
             <span className="text-xs text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">Hover to view details</span>
           </div>
-          <div className="transition-transform duration-500 ease-out group-hover:scale-105 cursor-crosshair">
-            <ResponsiveContainer width="100%" height={320}>
+          <div className="transition-transform duration-500 ease-out sm:group-hover:scale-105 cursor-crosshair">
+            <ResponsiveContainer width="100%" height={350}>
               <RadarChart data={radarData}>
                 <PolarGrid stroke="var(--chart-grid)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--chart-angle-axis)', fontSize: 11 }} />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--chart-angle-axis)', fontSize: 10 }} />
                 <PolarRadiusAxis tick={{ fill: 'var(--chart-radius-axis)', fontSize: 10 }} domain={[0, 100]} />
                 <Tooltip content={<CustomTooltip />} />
                 {[...top3].reverse().map((c, ri) => {

@@ -68,7 +68,7 @@ function StatCard({ stat, index }) {
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: index * 0.12, duration: 0.5, type: 'spring', stiffness: 200 }}
-      className="glass-card p-4 flex items-center gap-3 group"
+      className="glass-card p-3 sm:p-4 flex items-center gap-2 sm:gap-3 group"
     >
       <div
         className="p-2.5 rounded-xl transition-transform duration-300 group-hover:scale-110"
@@ -77,8 +77,8 @@ function StatCard({ stat, index }) {
         <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
       </div>
       <div>
-        <p className="text-xl font-bold text-white tabular-nums">{animatedValue}</p>
-        <p className="text-xs text-gray-500">{stat.label}</p>
+        <p className="text-lg sm:text-xl font-bold text-white tabular-nums">{animatedValue}</p>
+        <p className="text-[10px] sm:text-xs text-gray-500">{stat.label}</p>
       </div>
     </motion.div>
   );

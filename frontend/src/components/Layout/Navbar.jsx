@@ -67,71 +67,78 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
       }}
     >
       <div className="w-full px-0">
-        <div className="relative flex items-center justify-center h-[72px]">
-          {/* Logo */}
-          <Link to="/" className="absolute left-3 sm:left-8 flex items-center gap-2 sm:gap-3 group">
-            <motion.img 
-              src="/logo.png" 
-              alt="TalentLens Logo" 
-              className="w-14 h-14 sm:w-20 sm:h-20 object-cover mix-blend-screen" 
-              animate={{ rotate: logoRotation }}
-              transition={{ type: "spring", stiffness: 260, damping: 15 }}
-              onClick={() => setLogoRotation(prev => prev + 360)}
-            />
-            <div className="hidden sm:flex flex-col">
-              <span className="text-3xl font-black leading-tight transition-all duration-300" style={gradientText}>
-                TalentLens
-              </span>
-              <span className="text-xs text-gray-500 tracking-[0.2em] uppercase leading-none mt-0.5 group-hover:text-teal-400/70 transition-colors">
-                See Beyond the Resume
-              </span>
+        <div className="relative flex flex-col md:block h-auto md:h-[72px] pt-3 pb-3 md:py-0 gap-3 md:gap-0">
+          
+          <div className="flex justify-between items-center px-3 sm:px-8 md:px-0 w-full md:w-auto h-auto md:h-full">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group md:absolute md:left-8 md:top-1/2 md:-translate-y-1/2 z-10">
+              <motion.img 
+                src="/logo.png" 
+                alt="TalentLens Logo" 
+                className="w-12 h-12 sm:w-20 sm:h-20 object-cover mix-blend-screen" 
+                animate={{ rotate: logoRotation }}
+                transition={{ type: "spring", stiffness: 260, damping: 15 }}
+                onClick={() => setLogoRotation(prev => prev + 360)}
+              />
+              <div className="hidden sm:flex flex-col">
+                <span className="text-3xl font-black leading-tight transition-all duration-300" style={gradientText}>
+                  TalentLens
+                </span>
+                <span className="text-xs text-gray-500 tracking-[0.2em] uppercase leading-none mt-0.5 group-hover:text-teal-400/70 transition-colors">
+                  See Beyond the Resume
+                </span>
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-2 sm:gap-4 md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 z-10">
+              <ThemeToggle isDark={theme === 'dark'} toggleTheme={onToggleTheme} />
+
+              {/* Auth Menu */}
+              {user ? (
+                <div className="relative" ref={profileRef}>
+                  <button 
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center gap-2 focus:outline-none"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md transition-transform hover:scale-105">
+                      {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
+                    </div>
+                  </button>
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-lg ring-1 backdrop-blur-md z-50 profile-dropdown">
+                      <div className="px-4 py-3">
+                        <p className="text-sm font-medium truncate profile-name">{user.full_name || 'User'}</p>
+                        <p className="text-xs truncate profile-email">{user.email}</p>
+                      </div>
+                      <div className="py-1">
+                        <button 
+                          onClick={() => { logout(); setProfileOpen(false); }}
+                          className="group flex w-full items-center px-4 py-2 text-sm transition-colors profile-signout"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Link to="/login" className="text-xs sm:text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                    Sign in
+                  </Link>
+                  <Link to="/signup" className="hidden sm:inline-flex text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg transition-colors btn-get-started">
+                    Get Started
+                  </Link>
+                </div>
+              )}
             </div>
-          </Link>
+          </div>
 
           {/* PillNav replacing standard desktop tabs */}
-          <PillNav {...pillNavProps} />
-
-          <div className="absolute right-2 sm:right-4 flex items-center gap-2 sm:gap-4">
-            <ThemeToggle isDark={theme === 'dark'} toggleTheme={onToggleTheme} />
-
-            {/* Auth Menu */}
-            {user ? (
-              <div className="relative" ref={profileRef}>
-                <button 
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 focus:outline-none"
-                >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-md transition-transform hover:scale-105">
-                    {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
-                  </div>
-                </button>
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-lg ring-1 backdrop-blur-md z-50 profile-dropdown">
-                    <div className="px-4 py-3">
-                      <p className="text-sm font-medium truncate profile-name">{user.full_name || 'User'}</p>
-                      <p className="text-xs truncate profile-email">{user.email}</p>
-                    </div>
-                    <div className="py-1">
-                      <button 
-                        onClick={() => { logout(); setProfileOpen(false); }}
-                        className="group flex w-full items-center px-4 py-2 text-sm transition-colors profile-signout"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Link to="/login" className="text-xs sm:text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                  Sign in
-                </Link>
-                <Link to="/signup" className="hidden sm:inline-flex text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg transition-colors btn-get-started">
-                  Get Started
-                </Link>
-              </div>
-            )}
+          <div className="flex justify-center w-full md:absolute md:inset-0 md:pointer-events-none z-0">
+            <div className="pointer-events-auto flex items-center h-full">
+              <PillNav {...pillNavProps} />
+            </div>
           </div>
         </div>
       </div>

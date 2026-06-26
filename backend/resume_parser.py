@@ -78,6 +78,30 @@ def parse_resume(file_bytes: bytes, filename: str = "resume.pdf") -> dict:
     }
 
 
+def is_likely_resume(extracted_text: str) -> bool:
+    """
+    Lightweight check to determine if extracted PDF text looks like a resume.
+    Returns False for calendars, invoices, random documents, etc.
+    """
+    text_lower = extracted_text.lower()
+    resume_indicators = [
+        'experience', 'education', 'skills',
+        'work history', 'employment', 'objective',
+        'summary', 'qualifications', 'certifications',
+        'projects', 'references', 'contact',
+        'university', 'degree', 'bachelor',
+        'master', 'gpa', 'internship', 'volunteer',
+        'responsibilities', 'achievements'
+    ]
+    indicator_count = sum(
+        1 for word in resume_indicators
+        if word in text_lower
+    )
+    has_enough_indicators = indicator_count >= 3
+    has_reasonable_length = len(extracted_text.strip()) >= 100
+    return has_enough_indicators and has_reasonable_length
+
+
 def _extract_with_pymupdf(file_bytes: bytes) -> tuple[str, int]:
     """Extract text using PyMuPDF (fitz)."""
     doc = fitz.open(stream=file_bytes, filetype="pdf")

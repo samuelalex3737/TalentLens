@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 
 from database import get_db, init_db
 from models import AnalysisSession, Candidate
-from resume_parser import parse_resume
+from resume_parser import parse_resume, is_likely_resume
 from nlp_processor import preprocess_text, extract_skills, extract_skills_from_jd
 from tfidf_scorer import compute_tfidf_score, batch_compute_tfidf_scores
 from ai_scorer import score_resume_with_ai, get_ai_provider_status, generate_interview_questions, CALL_DELAY_SECONDS, call_llm, call_llm_json, OPENAI_API_KEY
@@ -346,15 +346,19 @@ async def analyze_resumes(
             parsed = await asyncio.to_thread(parse_resume, file_bytes, resume_file.filename)
             raw_text = parsed.get("raw_text", "")
             
-            # Resume Content Validation
-            text_lower = raw_text.lower()
-            if len(text_lower) < 150:
-                raise ValueError("Document contains too little text to be a valid resume")
-                
-            resume_keywords = ["experience", "education", "skill", "university", "college", "school", "project", "work", "employment", "profile", "summary", "resume", "cv", "certification", "degree", "bachelor"]
-            kw_count = sum(1 for kw in resume_keywords if kw in text_lower)
-            if kw_count < 3:
-                raise ValueError("Document does not appear to be a resume (missing standard sections like Experience, Education, etc.)")
+            # Resume Content Validation — reject non-resume PDFs cleanly
+            if not is_likely_resume(raw_text):
+                parsed_resumes.append({
+                    "filename": resume_file.filename,
+                    "raw_text": "",
+                    "candidate_name": "Invalid Document",
+                    "status": "invalid_resume",
+                    "error": f"'{resume_file.filename}' does not appear to be a resume. Please upload a valid resume PDF.",
+                    "email": None, "phone": None,
+                    "page_count": 0, "parser_used": "none",
+                })
+                logger.warning("Rejected '%s': not a resume", resume_file.filename)
+                continue
 
             parsed["filename"] = resume_file.filename
             parsed_resumes.append(parsed)
@@ -369,9 +373,18 @@ async def analyze_resumes(
             })
             logger.warning("Failed to parse '%s': %s", resume_file.filename, exc)
 
+    # Separate invalid documents from valid resumes
+    valid_resumes = []
+    invalid_entries = []
+    for parsed in parsed_resumes:
+        if parsed.get("status") == "invalid_resume":
+            invalid_entries.append(parsed)
+        else:
+            valid_resumes.append(parsed)
+
     # Preprocess resume texts (spaCy is CPU bound)
     preprocessed_texts = []
-    for parsed in parsed_resumes:
+    for parsed in valid_resumes:
         text = parsed.get("raw_text", "")
         if text:
             preprocessed, skills = await asyncio.to_thread(_run_spacy_pipeline, text)
@@ -451,12 +464,12 @@ async def analyze_resumes(
                 **ai_result,
             }
             
-        tasks = [process_candidate(p, t) for p, t in zip(parsed_resumes, tfidf_results)]
+        tasks = [process_candidate(p, t) for p, t in zip(valid_resumes, tfidf_results)]
         candidates_data = await asyncio.gather(*tasks)
         
     else:
         logger.info("OPENAI_API_KEY missing. Using SAFE sequential processing mode.")
-        for idx, (parsed, tfidf_result) in enumerate(zip(parsed_resumes, tfidf_results)):
+        for idx, (parsed, tfidf_result) in enumerate(zip(valid_resumes, tfidf_results)):
             if parsed.get("error"):
                 ai_result = {
                     "semantic_score": 0.0, "matched_skills": [], "missing_skills": jd_skills,
@@ -481,7 +494,7 @@ async def analyze_resumes(
                     logger.error("AI scoring timed out for '%s'", parsed.get("candidate_name", "Unknown"))
     
                 # Wait between candidates to respect rate limits (skip delay after the last one)
-                if idx < len(parsed_resumes) - 1:
+                if idx < len(valid_resumes) - 1:
                     await asyncio.sleep(3.0)
     
 
@@ -597,10 +610,25 @@ async def analyze_resumes(
         }
         response_candidates.append(resp)
 
+    # Append invalid document entries (not saved to DB, just sent to frontend)
+    for inv in invalid_entries:
+        response_candidates.append({
+            "id": None,
+            "filename": inv["filename"],
+            "candidate_name": inv.get("candidate_name", "Invalid Document"),
+            "status": "invalid_resume",
+            "error": inv.get("error", "This file does not appear to be a resume."),
+            "tfidf_score": 0.0,
+            "semantic_score": 0.0,
+            "final_score": 0.0,
+            "final_rank": 999,
+            "hiring_recommendation": "N/A",
+        })
+
     return {
         "session_id": session.id,
         "job_title": session.job_title,
-        "total_candidates": len(ranked),
+        "total_candidates": len(ranked) + len(invalid_entries),
         "summary": summary,
         "candidates": response_candidates,
     }

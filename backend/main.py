@@ -23,6 +23,11 @@ from sqlalchemy.orm import Session
 
 from pydantic import BaseModel, Field
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import bleach
+
 from database import get_db, init_db
 from models import AnalysisSession, Candidate
 from resume_parser import parse_resume, is_likely_resume
@@ -200,6 +205,11 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# Rate Limiter setup
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # CORS - allow React frontend
 app.add_middleware(
     CORSMiddleware,
@@ -281,7 +291,9 @@ async def health_check():
 import models
 
 @app.post("/api/analyze", tags=["Analysis"])
+@limiter.limit("5/minute")
 async def analyze_resumes(
+    request: Request,
     job_description: str = Form(...),
     job_title: Optional[str] = Form(None),
     resumes: list[UploadFile] = File(...),
@@ -303,6 +315,13 @@ async def analyze_resumes(
     """
     if not job_description.strip():
         raise HTTPException(400, "Job description cannot be empty")
+
+    # Sanitize inputs to prevent malicious hidden HTML/scripts
+    clean_jd = bleach.clean(job_description.strip(), tags=[], attributes={}, strip=True)
+    clean_title = bleach.clean(job_title.strip(), tags=[], attributes={}, strip=True) if job_title and job_title.strip() else None
+
+    if not clean_jd:
+        raise HTTPException(400, "Job description contains invalid content")
     if not resumes:
         raise HTTPException(400, "At least one resume PDF is required")
     if len(resumes) > 20:
@@ -311,8 +330,8 @@ async def analyze_resumes(
     # Create session
     session = AnalysisSession(
         user_id=current_user.id,
-        job_title=(job_title or "Untitled Position").strip().title(),
-        job_description=job_description,
+        job_title=(clean_title or "Untitled Position").title(),
+        job_description=clean_jd,
         total_candidates=len(resumes),
         status="processing",
     )
@@ -323,9 +342,9 @@ async def analyze_resumes(
     logger.info("Session %s: analyzing %d resumes", session.id, len(resumes))
 
     # Preprocess JD
-    jd_preprocessed = preprocess_text(job_description)
-    jd_skills = extract_skills_from_jd(job_description)
-    jd_skills = list(dict.fromkeys(jd_skills + _alias_skills_from_text(job_description)))
+    jd_preprocessed = preprocess_text(clean_jd)
+    jd_skills = extract_skills_from_jd(clean_jd)
+    jd_skills = list(dict.fromkeys(jd_skills + _alias_skills_from_text(clean_jd)))
 
     # Parse all resumes
     parsed_resumes = []
@@ -418,7 +437,7 @@ async def analyze_resumes(
                     async with sem:
                         ai_result = await asyncio.wait_for(
                             score_resume_with_ai(
-                                job_description, parsed["raw_text"],
+                                clean_jd, parsed["raw_text"],
                                 candidate_name=parsed.get("candidate_name", "Unknown"),
                             ),
                             timeout=180.0
@@ -480,7 +499,7 @@ async def analyze_resumes(
                 try:
                     ai_result = await asyncio.wait_for(
                         score_resume_with_ai(
-                            job_description, parsed["raw_text"],
+                            clean_jd, parsed["raw_text"],
                             candidate_name=parsed.get("candidate_name", "Unknown"),
                         ),
                         timeout=60.0
@@ -745,7 +764,12 @@ async def delete_session(
 
 
 @app.get("/api/candidates/{candidate_id}/questions", tags=["AI"])
-async def get_interview_questions(candidate_id: str, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+async def get_interview_questions(
+    request: Request,
+    candidate_id: str, 
+    db: Session = Depends(get_db)
+):
     """Generate custom interview questions for a candidate using LLMs."""
     candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
     if not candidate:
@@ -781,7 +805,9 @@ async def update_candidate_notes(
     return {"success": True, "notes": cleaned_notes}
 
 @app.post("/api/sessions/{session_id}/shortlist-email", tags=["AI"])
+@limiter.limit("5/minute")
 async def generate_shortlist_email(
+    request: Request,
     session_id: str,
     payload: ShortlistEmailRequest,
     db: Session = Depends(get_db)
@@ -880,7 +906,11 @@ TalentLens Recruitment Team
     }
 
 @app.post("/api/jd/analyze", tags=["AI"])
-async def analyze_jd_quality(payload: JDAnalyzeRequest) -> JDQualityResponse:
+@limiter.limit("5/minute")
+async def analyze_job_description(
+    request: Request,
+    payload: JDAnalyzeRequest
+) -> JDQualityResponse:
     prompt = f"""You are a Job Description Quality Analyzer. 
   Evaluate the provided job description against 
   these five fixed criteria. Score each 0-20:

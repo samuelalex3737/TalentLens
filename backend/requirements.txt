@@ -21,3 +21,7 @@ numpy==2.2.2
 # Database / Auth
 supabase==2.4.3
 psycopg2-binary==2.9.10
+
+# Security
+slowapi
+bleach

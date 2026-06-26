@@ -91,8 +91,8 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
           {/* PillNav replacing standard desktop tabs */}
           <PillNav {...pillNavProps} />
 
-          <div className="absolute right-4 flex items-center gap-4">
-            <ThemeToggle isDark={theme === 'dark'} toggleTheme={onToggleTheme} className="hidden md:flex" />
+          <div className="absolute right-2 sm:right-4 flex items-center gap-2 sm:gap-4">
+            <ThemeToggle isDark={theme === 'dark'} toggleTheme={onToggleTheme} />
 
             {/* Auth Menu */}
             {user ? (
@@ -123,51 +123,17 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
                 )}
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-3">
-                <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Link to="/login" className="text-xs sm:text-sm font-medium text-gray-300 hover:text-white transition-colors">
                   Sign in
                 </Link>
-                <Link to="/signup" className="text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg transition-colors btn-get-started">
+                <Link to="/signup" className="hidden sm:inline-flex text-sm font-medium text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-lg transition-colors btn-get-started">
                   Get Started
                 </Link>
               </div>
             )}
-
-            {/* Mobile Toggle */}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5">
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
-
-        {mobileOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="md:hidden pb-4 space-y-1 px-4 border-t border-white/5" style={{ background: 'var(--nav-bg)', backdropFilter: 'blur(24px)' }}>
-            <div className="py-2 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    getActiveHref(location.pathname) === item.href 
-                      ? 'bg-indigo-500/10 text-indigo-400' 
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <div className="h-px w-full bg-white/5 my-2" />
-            <button
-              onClick={() => { onToggleTheme?.(); setMobileOpen(false); }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </button>
-          </motion.div>
-        )}
       </div>
     </motion.nav>
   );

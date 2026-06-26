@@ -21,10 +21,9 @@
 }
 @media (max-width: 768px) {
   .pill-nav {
-    width: 100%;
-    justify-content: space-between;
-    padding: 0 1rem;
-    background: transparent;
+    transform: scale(0.85); /* Slightly scale down to fit small screens */
+    margin-left: 20px;
+    margin-right: 10px;
   }
 }
 .pill-nav-items {
@@ -134,7 +133,6 @@
 .desktop-only { display: block; }
 .mobile-only { display: none; }
 @media (max-width: 768px) {
-  .desktop-only { display: none; }
   .mobile-only { display: block; }
 }
 .mobile-menu-button {

@@ -142,6 +142,23 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
 
         {mobileOpen && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="md:hidden pb-4 space-y-1 px-4 border-t border-white/5" style={{ background: 'var(--nav-bg)', backdropFilter: 'blur(24px)' }}>
+            <div className="py-2 space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    getActiveHref(location.pathname) === item.href 
+                      ? 'bg-indigo-500/10 text-indigo-400' 
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <div className="h-px w-full bg-white/5 my-2" />
             <button
               onClick={() => { onToggleTheme?.(); setMobileOpen(false); }}
               className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"

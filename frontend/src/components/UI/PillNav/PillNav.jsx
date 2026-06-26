@@ -228,36 +228,7 @@ const PillNav = ({
           </ul>
         </div>
 
-        <button className="mobile-menu-button mobile-only"
-          onClick={toggleMobileMenu} aria-label="Toggle menu"
-          ref={hamburgerRef}>
-          <span className="hamburger-line" />
-          <span className="hamburger-line" />
-        </button>
       </nav>
-
-      <div className="mobile-menu-popover mobile-only" 
-           ref={mobileMenuRef} style={cssVars}>
-        <ul className="mobile-menu-list">
-          {items.map((item, i) => (
-            <li key={item.href || `mobile-item-${i}`}>
-              {isRouterLink(item.href) ? (
-                <Link to={item.href}
-                  className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}>
-                  {item.label}
-                </Link>
-              ) : (
-                <a href={item.href}
-                  className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
-                  onClick={() => setIsMobileMenuOpen(false)}>
-                  {item.label}
-                </a>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
 };

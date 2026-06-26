@@ -234,9 +234,9 @@ export default function CandidateCard({ candidate, index, isSelected, onToggleSe
         </div>
       )}
       {/* Header Row */}
-      <div className="p-5 cursor-pointer flex flex-wrap items-center gap-3 sm:gap-4" onClick={() => setExpanded(!expanded)}>
+      <div className="p-4 sm:p-5 cursor-pointer flex items-start sm:items-center gap-3 sm:gap-4" onClick={() => setExpanded(!expanded)}>
         {onToggleSelect && (
-          <div className="shrink-0 pt-1" onClick={e => e.stopPropagation()}>
+          <div className="shrink-0 pt-1 sm:pt-0" onClick={e => e.stopPropagation()}>
             <input 
               type="checkbox" 
               checked={isSelected || false} 
@@ -245,33 +245,37 @@ export default function CandidateCard({ candidate, index, isSelected, onToggleSe
             />
           </div>
         )}
-        <div className="text-2xl w-10 text-center shrink-0">
+        <div className="text-2xl w-10 text-center shrink-0 pt-0.5 sm:pt-0">
           {typeof style.icon === 'string' && style.icon.startsWith('#')
-            ? <span className="text-sm font-bold text-gray-500 bg-white/5 rounded-full w-8 h-8 flex items-center justify-center">{style.icon}</span>
+            ? <span className="text-sm font-bold text-gray-500 bg-white/5 rounded-full w-8 h-8 flex items-center justify-center mx-auto">{style.icon}</span>
             : <span className="text-2xl">{style.icon}</span>}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h4 className="text-white font-bold text-base truncate">{candidate.candidate_name}</h4>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-            <span className="text-xs text-gray-500 truncate">{candidate.filename}</span>
-            {candidate.linkedin && <Link className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
-            {candidate.github && <Code className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
-            {candidate.certifications?.length > 0 && <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+        <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div className="flex-1 min-w-0">
+            <h4 className="text-white font-bold text-base truncate">{candidate.candidate_name}</h4>
+            <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+              <span className="text-xs text-gray-500 truncate">{candidate.filename}</span>
+              {candidate.linkedin && <Link className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
+              {candidate.github && <Code className="w-3.5 h-3.5 text-gray-400 shrink-0" />}
+              {candidate.certifications?.length > 0 && <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto justify-end sm:justify-start mt-1 sm:mt-0">
-          <BiasBadge risk={candidate.bias_risk} explanation={candidate.bias_explanation} />
-          <ScoreTooltipWrapper aiWeight={aiWeight}>
-            <ScoreBadge score={candidate.final_score} size="lg" />
-          </ScoreTooltipWrapper>
-          <span className="hidden sm:inline-flex text-xs px-3 py-1 rounded-full font-semibold"
-            style={{ background: rec.bg, color: rec.text, border: `1px solid ${rec.border}` }}>
-            {candidate.hiring_recommendation}
-          </span>
-          {candidate.score_conflict && <AlertTriangle className="w-4 h-4 text-amber-400" />}
-          {expanded ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+            <BiasBadge risk={candidate.bias_risk} explanation={candidate.bias_explanation} />
+            <ScoreTooltipWrapper aiWeight={aiWeight}>
+              <ScoreBadge score={candidate.final_score} size="lg" />
+            </ScoreTooltipWrapper>
+            <span className="hidden sm:inline-flex text-xs px-3 py-1 rounded-full font-semibold"
+              style={{ background: rec.bg, color: rec.text, border: `1px solid ${rec.border}` }}>
+              {candidate.hiring_recommendation}
+            </span>
+            {candidate.score_conflict && <AlertTriangle className="w-4 h-4 text-amber-400" />}
+            <div className="ml-auto sm:ml-0">
+              {expanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+            </div>
+          </div>
         </div>
       </div>
 

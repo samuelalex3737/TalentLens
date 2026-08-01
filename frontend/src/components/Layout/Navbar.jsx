@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ScanEye, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { gradientText } from '../UI/GradientText';
 import { useAuth } from '../../context/AuthContext';
@@ -9,7 +8,6 @@ import PillNav from '../UI/PillNav/PillNav';
 
 export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const [logoRotation, setLogoRotation] = useState(0);
@@ -67,11 +65,10 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
       }}
     >
       <div className="w-full px-0">
-        <div className="relative flex flex-col md:block h-auto md:h-[72px] pt-3 pb-3 md:py-0 gap-3 md:gap-0">
+        <div className="relative flex items-center justify-between h-[56px] lg:h-[72px] px-3 sm:px-8">
           
-          <div className="flex justify-between items-center px-3 sm:px-8 md:px-0 w-full md:w-auto h-auto md:h-full">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 group md:absolute md:left-8 md:top-1/2 md:-translate-y-1/2 z-10">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group lg:absolute lg:left-8 lg:top-1/2 lg:-translate-y-1/2 z-10">
               <motion.img 
                 src="/logo.png" 
                 alt="TalentLens Logo" 
@@ -90,7 +87,14 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
               </div>
             </Link>
 
-            <div className="flex items-center gap-2 sm:gap-4 md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 z-10">
+            {/* PillNav — desktop only (lg+) */}
+            <div className="hidden lg:flex absolute inset-0 items-center justify-center pointer-events-none z-0">
+              <div className="pointer-events-auto">
+                <PillNav {...pillNavProps} />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 sm:gap-4 lg:absolute lg:right-4 lg:top-1/2 lg:-translate-y-1/2 z-10">
               <ThemeToggle isDark={theme === 'dark'} toggleTheme={onToggleTheme} />
 
               {/* Auth Menu */}
@@ -132,14 +136,6 @@ export default function Navbar({ theme = 'dark', onToggleTheme = () => {} }) {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* PillNav replacing standard desktop tabs */}
-          <div className="flex justify-center w-full md:absolute md:inset-0 md:pointer-events-none z-0">
-            <div className="pointer-events-auto flex items-center h-full">
-              <PillNav {...pillNavProps} />
-            </div>
-          </div>
         </div>
       </div>
     </motion.nav>

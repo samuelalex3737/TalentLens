@@ -7,6 +7,7 @@ import AnalyzePage from './pages/AnalyzePage';
 import HistoryPage from './pages/HistoryPage';
 import LiquidEther from './components/UI/LiquidEther/LiquidEther';
 import BackToTop from './components/UI/BackToTop';
+import MobileBottomNav from './components/UI/MobileBottomNav';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
@@ -66,7 +67,8 @@ export default function App() {
         />
       )}
       <Navbar theme={theme} onToggleTheme={toggleTheme} />
-      <main className="flex-1">
+      <MobileBottomNav />
+      <main className="flex-1 pb-28 lg:pb-0">
         <Routes>
           <Route path="/" element={<HomePage theme={theme} />}>
             <Route path="login" element={<LoginPage />} />
